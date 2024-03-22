@@ -7,7 +7,7 @@ public class FanSpin : MonoBehaviour
     const float FastSpinSpeed = 1;
     const float SlowSpinSpeed = 0.05f;
 
-    const float SlowTime = 30;
+    public float SlowTime;
     public bool isSlow;
 
     [SerializeField] private float CurrentSpinSpeed;
