@@ -192,7 +192,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: f8058eb0e23576a45ac9c2ff62710a3c, type: 2}
     - target: {fileID: 919132149155446097, guid: 1f292ede5fa312044880ec5ffbd09a5c, type: 3}
       propertyPath: m_Name
-      value: Pressure_Plate_1
+      value: Working_Pressure_Plate
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
