@@ -10,6 +10,9 @@ public class FanBlowPlayerAway : MonoBehaviour
     public PlayerMovementController playerMovementController;
     public FanSpin fanSpin;
 
+    [Header("Suck Player in or Blow Player Away?")] public bool blowingInwards;
+    [Header("Apply Player Y Axis Interference?")] public bool yAxisEnabled;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -29,8 +32,34 @@ public class FanBlowPlayerAway : MonoBehaviour
         //if not slow then blow the player away
         if (other.CompareTag("Player") && !fanSpin.isSlow)
         {
-            playerMovementController.velocity.x += -(transform.position.x - other.transform.position.x) * BlowMultiplier;
-            playerMovementController.velocity.z += -(transform.position.z - other.transform.position.z) * BlowMultiplier;
+            if(yAxisEnabled)
+            {
+                if(blowingInwards)
+                {
+                    //suck player inwards
+                    playerMovementController.velocity += (transform.position - other.transform.position) * BlowMultiplier;
+                }
+                else
+                {
+                    //blow player outwards
+                    playerMovementController.velocity += -(transform.position - other.transform.position) * BlowMultiplier;
+                }
+            }
+            else
+            {
+                if(blowingInwards)
+                {
+                    //suck player x and z inwards
+                    playerMovementController.velocity.x += (transform.position.x - other.transform.position.x) * BlowMultiplier;
+                    playerMovementController.velocity.z += (transform.position.z - other.transform.position.z) * BlowMultiplier;
+                }
+                else
+                {
+                    //blow player x and z outwards
+                    playerMovementController.velocity.x += -(transform.position.x - other.transform.position.x) * BlowMultiplier;
+                    playerMovementController.velocity.z += -(transform.position.z - other.transform.position.z) * BlowMultiplier;
+                }
+            }
         }
     }
 }
