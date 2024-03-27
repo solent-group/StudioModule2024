@@ -14,10 +14,9 @@ public class SlidingCircularDoor : MonoBehaviour
 
     [Header("<b>Door Parameters</b>")]
     [Space]
-    [SerializeField][Range(0.0f, 10.0f)] private float _openDistance = 0.6f;
-    [SerializeField][Range(0.0f, 10.0f)] private float _doorSpeed = 0.7f;
-
-    public bool openDoor = false;
+    [Tooltip("The distance the door opens.")][SerializeField][Range(0.0f, 10.0f)] private float _openDistance = 0.6f;
+    [Tooltip("The speed the door opens.")][SerializeField][Range(0.0f, 10.0f)] private float _doorSpeed = 0.7f;
+    [Tooltip("Whether the door is open.")] public bool openDoor = false;
 
     // [Events]
 
