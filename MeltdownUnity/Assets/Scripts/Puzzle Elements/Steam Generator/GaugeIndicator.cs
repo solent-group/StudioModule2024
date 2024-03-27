@@ -771,8 +771,13 @@ public class GaugeIndicator : MonoBehaviour
 
     private void SetDisabled()
     {
+        // Sets fire and ice calls to 0 to halt recursion, then sets to original number after a delay.
         _fireCalls = 0;
         _iceCalls = 0;
+        Invoke("SetFireCalls", _smallDelay);
+        Invoke("SetIceCalls", _smallDelay);
+
+        // Disables movement.
         MoveToNextPoint = false;
         MoveToPrevPoint = false;
         AutoCoolOn = false;
