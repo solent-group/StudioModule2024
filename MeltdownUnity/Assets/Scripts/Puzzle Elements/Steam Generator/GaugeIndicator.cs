@@ -32,54 +32,54 @@ public class GaugeIndicator : MonoBehaviour
 
     [Header("<size=15>Rotation Parameters</size>")]
     [Space]
-    [SerializeField] private Vector3 _rotationAxis = Vector3.back;
-    [SerializeField][Range(0.0f, 360.0f)] private float _minDegreesBelowStart = 90.0f;
-    [Range(0, 100)] public int _firePercentage = 40;
-    [Range(0, 100)] public int _icePercentage = 20;
-    [SerializeField][Range(19.9f, 360.0f)] private float _maxDegrees = 180.0f;
-    [SerializeField][Range(0.0f, 100.0f)] private float _heatingSpeed = 40.0f;
-    [SerializeField][Range(0.0f, 100.0f)] private float _coolingSpeed = 40.0f;
+    [Tooltip("The axis of rotation in x, y, z.")][SerializeField] private Vector3 _rotationAxis = Vector3.back;
+    [Tooltip("The degrees before the start where the minimum point is.")][SerializeField][Range(0.0f, 360.0f)] private float _minDegreesBelowStart = 90.0f;
+    [Tooltip("The progression a fire hit does in the dual fire-ice scale.")][Range(0, 100)] public int _firePercentage = 40;
+    [Tooltip("The regression an ice hit does in the dual fire-ice scale.")][Range(0, 100)] public int _icePercentage = 20;
+    [Tooltip("The size of a dual fire-ice scale. 19.9 is off.")][SerializeField][Range(19.9f, 360.0f)] private float _maxDegrees = 180.0f;
+    [Tooltip("The speed of a fire hit.")][SerializeField][Range(0.0f, 100.0f)] private float _heatingSpeed = 40.0f;
+    [Tooltip("The speed of an ice hit.")][SerializeField][Range(0.0f, 100.0f)] private float _coolingSpeed = 40.0f;
 
     [Header("<size=15>Location Parameters</size>")]
     [Space]
+    [Tooltip("The destination range at which events occur.")]
     [SerializeField]
     public Destination[] _destinations =
     {
         new Destination { name = "On", minPosition = 0.0f, maxPosition = 0.0f},
     };
-    public bool MoveToNextPoint = false;
-    public bool MoveToPrevPoint = false;
-    public bool ResetPinLocation = false;
-    public bool FinalPinLocation = false;
+    [Tooltip("Moves according to one fire hit.")] public bool MoveToNextPoint = false;
+    [Tooltip("Moves according to one ice hit.")] public bool MoveToPrevPoint = false;
+    [Tooltip("Resets to the start position.")] public bool ResetPinLocation = false;
+    [Tooltip("Moves to the final position.")] public bool FinalPinLocation = false;
+    [Tooltip("Moves to the minimum position.")] public bool MinLocation = false;
 
     [Header("<size=14>Test-Only Rotation Parameters</size>")]
     [Space]
-    [SerializeField] private float[] _heatRotationPoints = { 0.0f, 70f, 140.0f, 210.0f };
-    [SerializeField] private float[] _coolRotationPoints = { 0.0f, 35.0f, 70.0f, 105.0f, 140.0f, 175.0f, 210.0f };
-    [SerializeField][Range(0, 50)] private int _equalHeatPoints = 3;
-    [SerializeField][Range(10.0f, 360.0f)] private float _equalHeatEndPoint = 210.0f;
+    [Tooltip("The fire rotation points.")][SerializeField] private float[] _heatRotationPoints = { 0.0f, 70f, 140.0f, 210.0f };
+    [Tooltip("The ice rotation points.")][SerializeField] private float[] _coolRotationPoints = { 0.0f, 35.0f, 70.0f, 105.0f, 140.0f, 175.0f, 210.0f };
+    [Tooltip("The equidistant number of fire rotation points.")][SerializeField][Range(0, 50)] private int _equalHeatPoints = 3;
+    [Tooltip("The size of the fire scale.")][SerializeField][Range(10.0f, 360.0f)] private float _equalHeatEndPoint = 210.0f;
     [Space]
-    [SerializeField][Range(0, 50)] private int _equalCoolPoints = 7;
-    [SerializeField][Range(10.0f, 360.0f)] private float _equalCoolEndPoint = 210.0f;
+    [Tooltip("The equidistant number of ice rotation points.")][SerializeField][Range(0, 50)] private int _equalCoolPoints = 7;
+    [Tooltip("The size of the ice scale.")][SerializeField][Range(10.0f, 360.0f)] private float _equalCoolEndPoint = 210.0f;
     [Space]
-    [SerializeField][Range(0.0f, 100.0f)] private float _autoCoolDelay = 2.0f;
-    public bool AutoCoolOn = false;
-    public bool AutoCoolTriggerOn = false;
-    public bool InstantRotation = false;
-    public bool RunTimeReposition = false;
-    public bool HeatOnlyScale = false;
-    [Range(0, 50)] public int FireCalls = 1;
-    [Range(0, 50)] public int IceCalls = 1;
+    [Tooltip("The delay at which auto-cooling begins.")][SerializeField][Range(0.0f, 100.0f)] private float _autoCoolDelay = 2.0f;
+    [Tooltip("Whether auto-cooling is active.")] public bool AutoCoolOn = false;
+    [Tooltip("Whether auto-cooling is triggered.")] public bool AutoCoolTriggerOn = false;
+    [Tooltip("Whether instant movement is on.")] public bool InstantRotation = false;
+    [Tooltip("Whether the rotation points adapat at run-time (currently heat-only).")] public bool RunTimeReposition = false;
+    [Tooltip("Makes the ice hits the same as fire hits.")] public bool HeatOnlyScale = false;
+    [Tooltip("The number of fire hits.")][Range(0, 50)] public int FireCalls = 1;
+    [Tooltip("The number of ice hits.")][Range(0, 50)] public int IceCalls = 1;
 
     [Header("<size=14>Test-Only Location Parameters </size>")]
     [Space]
-    [SerializeField] private bool _setStartPosition = false;
-    [SerializeField] private Vector3 _startPosition = Vector3.zero;
+    [Tooltip("Whether setting the local start position is enabled.")][SerializeField] private bool _setStartPosition = false;
+    [Tooltip("The co-ordinates to set the local start position.")][SerializeField] private Vector3 _startPosition = Vector3.zero;
     [Space]
-    [SerializeField] private bool _setStartRotation = false;
-    [SerializeField] private Vector3 _startRotation = Vector3.zero;
-    [Space]
-    [SerializeField] private bool _minLocation = false;
+    [Tooltip("Whether setting the local start rotation is enabled.")][SerializeField] private bool _setStartRotation = false;
+    [Tooltip("The co-ordinates to set the local start rotation.")][SerializeField] private Vector3 _startRotation = Vector3.zero;
 
     public UnityEvent<string> OnComplete;
 
@@ -147,9 +147,9 @@ public class GaugeIndicator : MonoBehaviour
             FinalPinLocation = false;
             MaxGauge();
         }
-        else if (_minLocation)
+        else if (MinLocation)
         {
-            _minLocation = false;
+            MinLocation = false;
             if (!HeatOnlyScale)
             {
                 MinGauge();
