@@ -26,12 +26,13 @@ public class BoomEntrance : MonoBehaviour
 
     [Header("<b>Shake Parameters (All in %)</b>")]
     [Space]
-    [SerializeField][Range(0f, 1000f)] private float _shakeSeconds = 180f;
-    [SerializeField][Range(0f, 1000f)] private float _shakeHorizontal = 80f;
-    [SerializeField][Range(0f, 1000f)] private float _shakeVertical = 150f;
+    [Tooltip("The duration of the shake in seconds.")][SerializeField][Range(0f, 1000f)] private float _shakeSeconds = 180f;
+    [Tooltip("The amount of horizontal shake.")][SerializeField][Range(0f, 1000f)] private float _shakeHorizontal = 80f;
+    [Tooltip("The amount of vertical shake.")][SerializeField][Range(0f, 1000f)] private float _shakeVertical = 150f;
 
     [Header("<b>Audio Parameters (All in %)</b>")]
     [Space]
+    [Tooltip("The audio tracks to be played.")]
     [SerializeField] private AudioVariables[] _audioTracks =
     {
         new AudioVariables { name = "Track 1", audioClip = null, pitch = 300f, volume = 70f },
@@ -40,9 +41,9 @@ public class BoomEntrance : MonoBehaviour
 
     [Header("<b>Action Paramaters</b>")]
     [Space]
-    public bool PlayShakeAndClips = false;
-    public bool Shake = false;
-    public bool PlayClips = false;
+    [Tooltip("Play both the shake and the audio clips.")] public bool PlayShakeAndClips = false;
+    [Tooltip("Play the shake.")] public bool Shake = false;
+    [Tooltip("Play the audio clips.")] public bool PlayClips = false;
 
 
     // [Events]
