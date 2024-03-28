@@ -13,7 +13,7 @@ public struct Destination
     public string name;
     public float minPosition;
     public float maxPosition;
-    [ShowOnly] public float position;
+    [ShowOnly] public float centralPosition;
     [ShowOnly] public float tolerance;
 
     public Destination(string name, float minPosition, float maxPosition)
@@ -21,7 +21,7 @@ public struct Destination
         this.name = name;
         this.minPosition = minPosition;
         this.maxPosition = maxPosition;
-        this.position = (minPosition + maxPosition) / 2f;
+        this.centralPosition = (minPosition + maxPosition) / 2f;
         this.tolerance = Mathf.Abs(this.minPosition - this.maxPosition);
     }
 }
@@ -33,8 +33,7 @@ public class GaugeIndicator : MonoBehaviour
     private int _heatIndex, _firstHeatIndex, _secondHeatIndex, _initialHeatIndex, _startHeatIndex, _finalHeatIndex;
     private int _startCoolIndex, _coolIndex, _finalCoolIndex;
     private float _firstHeatPoint, _initialHeatPoint, _finalHeatPoint, _firstCoolPoint, _finalCoolPoint;
-    private float _nextRotationPoint, _prevRotationPoint;
-    private float _rotationIncrement, _smallIncrement, _smallDelay;
+    private float  _smallIncrement, _smallDelay;
     private Quaternion _defaultRotation, _finalRotation, _descendRotation;
     private bool _didForwardRot = false, _didBackRot = false;
 
@@ -67,7 +66,14 @@ public class GaugeIndicator : MonoBehaviour
     [Tooltip("Moves to the final position.")] public bool FinalPinLocation = false;
     [Tooltip("Moves to the minimum position.")] public bool MinLocation = false;
 
-    [Header("<size=15>Detailed Scale Parameters</size>")]
+    [Header("<size=15>Repetition Parameters</size>")]
+    [Space]
+    [Tooltip("The set number of rotation points to go through by fire.")][Range(0, 100)] public int FireCalls = 1;
+    [Tooltip("The set number of rotation points to go through by ice.")][Range(0, 100)] public int IceCalls = 1;
+    [Tooltip("The remaining number of rotation points to go through by fire.")][SerializeField][Range(0, 100)] private int _remainingFireCalls;
+    [Tooltip("The remaining number of rotation points to go through by ice.")][SerializeField][Range(0, 100)] private int _remainingIceCalls;
+
+    [Header("<size=15>Scale Parameters</size>")]
     [Space]
     [Tooltip("Whether to override with custom scales.")][SerializeField] private bool _customScale = false;
     [Tooltip("The fire rotation points.")][SerializeField] private float[] _heatRotationPoints = { 0.0f, 70f, 140.0f, 210.0f };
@@ -78,11 +84,9 @@ public class GaugeIndicator : MonoBehaviour
     [Tooltip("The number of equidistant ice rotation points.")][SerializeField][Range(0, 100)] private int _equalCoolPoints = 7;
     [Tooltip("The size of the ice scale.")][SerializeField][Range(20f, 360f)] private float _equalCoolEndPoint = 210.0f;
     [Space]
-    [Tooltip("The set number of rotation points to go through by fire.")][Range(0, 100)] public int FireCalls = 1;
-    [Tooltip("The set number of rotation points to go through by ice.")][Range(0, 100)] public int IceCalls = 1;
-    [Tooltip("The remaining number of rotation points to go through by fire.")][SerializeField][Range(0, 100)] private int _remainingFireCalls;
-    [Tooltip("The remaining number of rotation points to go through by ice.")][SerializeField][Range(0, 100)] private int _remainingIceCalls;
-    [Space]
+    [Tooltip("The previous rotation point.")][SerializeField][ShowOnly] private float _prevRotationPoint;
+    [Tooltip("The current rotation value.")][SerializeField][ShowOnly] private float _rotationIncrement;
+    [Tooltip("The next rotation point.")][SerializeField][ShowOnly] private float _nextRotationPoint;
 
     [Header("<size=14>Test-Only Rotation Parameters</size>")]
     [Tooltip("The delay at which auto-cooling begins.")][SerializeField][Range(0.0f, 100.0f)] private float _autoCoolDelay = 2.0f;
@@ -104,6 +108,12 @@ public class GaugeIndicator : MonoBehaviour
 
     // [Events]
 
+    private void OnValidate()
+    {
+        // Allows Central Position and Tolerance to be recalculated.
+        RebuildDestinations();
+    }
+
     private void Awake()
     {
         // Sets Number of Calls to Repeat
@@ -116,7 +126,7 @@ public class GaugeIndicator : MonoBehaviour
 
         for (int i = 0; i < _destinations.Length; i++)
         {
-            _destinations[i] = new Destination(_destinations[i].name, _destinations[i].maxPosition, _destinations[i].minPosition);
+            _destinations[i] = new Destination(_destinations[i].name, _destinations[i].minPosition, _destinations[i].maxPosition);
         }
 
         // Local Start Co-ordinates override.
@@ -709,6 +719,14 @@ public class GaugeIndicator : MonoBehaviour
     private float RoundToOneDP(float valueToRound)
     {
         return Mathf.Round(valueToRound * 10) / 10;
+    }
+
+    private void RebuildDestinations()
+    {
+        for (int i = 0; i < _destinations.Length; i++)
+        {
+            _destinations[i] = new Destination(_destinations[i].name, _destinations[i].minPosition, _destinations[i].maxPosition);
+        }
     }
 
     private void CheckForDestination()
