@@ -39,18 +39,13 @@ public class ElevatorController : MonoBehaviour
 	[Tooltip("How fast the doors should close and open")]
 	public float DoorSpeed = 0.3f;
 
-	// use for if the elevator rises. Not included as the player vibrates when moved.
-	//public bool ElevatorRisesOnLeave = false;
-
-	//private Vector3 _elevatorStartPos;
-
 	// for use in the lerp to lerp the door.
 	private float _timeCounter;
 
 	// whehter teh player is in the elevator or not.
 	private bool _playerEntered = false;
 
-	private ParticleSystem particleSystem;
+	private new ParticleSystem particleSystem;
 
 	// Start is called before the first frame update
 	void Start()
