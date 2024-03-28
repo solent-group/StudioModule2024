@@ -13,6 +13,17 @@ public struct Destination
     public string name;
     public float minPosition;
     public float maxPosition;
+    [ShowOnly] public float position;
+    [ShowOnly] public float tolerance;
+
+    public Destination(string name, float minPosition, float maxPosition)
+    {
+        this.name = name;
+        this.minPosition = minPosition;
+        this.maxPosition = maxPosition;
+        this.position = (minPosition + maxPosition) / 2f;
+        this.tolerance = Mathf.Abs(this.minPosition - this.maxPosition);
+    }
 }
 
 public class GaugeIndicator : MonoBehaviour
@@ -26,17 +37,19 @@ public class GaugeIndicator : MonoBehaviour
     private float _rotationIncrement, _smallIncrement, _smallDelay;
     private Quaternion _defaultRotation, _finalRotation, _descendRotation;
     private bool _didForwardRot = false, _didBackRot = false;
-    private int _fireCalls, _iceCalls;
 
     // [Editor Variables]
 
     [Header("<size=15>Rotation Parameters</size>")]
     [Space]
     [Tooltip("The axis of rotation in x, y, z.")][SerializeField] private Vector3 _rotationAxis = Vector3.back;
-    [Tooltip("The degrees before the start where the minimum point is.")][SerializeField][Range(0.0f, 360.0f)] private float _minDegreesBelowStart = 90.0f;
+    [Space]
+    [Tooltip("The degrees before the start where the minimum point is.")][SerializeField][Range(0f, 360f)] private float _minDegreesBelowStart = 90.0f;
+    [Space]
     [Tooltip("The progression a fire hit does in the dual fire-ice scale.")][Range(0, 100)] public int _firePercentage = 40;
     [Tooltip("The regression an ice hit does in the dual fire-ice scale.")][Range(0, 100)] public int _icePercentage = 20;
-    [Tooltip("The size of a dual fire-ice scale. 19.9 is off.")][SerializeField][Range(19.9f, 360.0f)] private float _maxDegrees = 180.0f;
+    [Tooltip("The size of a dual fire-ice scale.")][SerializeField][Range(20f, 360f)] private float _maxDegrees = 180f;
+    [Space]
     [Tooltip("The speed of a fire hit.")][SerializeField][Range(0.0f, 100.0f)] private float _heatingSpeed = 40.0f;
     [Tooltip("The speed of an ice hit.")][SerializeField][Range(0.0f, 100.0f)] private float _coolingSpeed = 40.0f;
 
@@ -46,7 +59,7 @@ public class GaugeIndicator : MonoBehaviour
     [SerializeField]
     public Destination[] _destinations =
     {
-        new Destination { name = "On", minPosition = 0.0f, maxPosition = 0.0f},
+        new Destination ("On", 160.0f, 180.0f)
     };
     [Tooltip("Moves according to one fire hit.")] public bool MoveToNextPoint = false;
     [Tooltip("Moves according to one ice hit.")] public bool MoveToPrevPoint = false;
@@ -54,24 +67,30 @@ public class GaugeIndicator : MonoBehaviour
     [Tooltip("Moves to the final position.")] public bool FinalPinLocation = false;
     [Tooltip("Moves to the minimum position.")] public bool MinLocation = false;
 
-    [Header("<size=14>Test-Only Rotation Parameters</size>")]
+    [Header("<size=15>Detailed Scale Parameters</size>")]
     [Space]
+    [Tooltip("Whether to override with custom scales.")][SerializeField] private bool _customScale = false;
     [Tooltip("The fire rotation points.")][SerializeField] private float[] _heatRotationPoints = { 0.0f, 70f, 140.0f, 210.0f };
     [Tooltip("The ice rotation points.")][SerializeField] private float[] _coolRotationPoints = { 0.0f, 35.0f, 70.0f, 105.0f, 140.0f, 175.0f, 210.0f };
-    [Tooltip("The equidistant number of fire rotation points.")][SerializeField][Range(0, 50)] private int _equalHeatPoints = 3;
-    [Tooltip("The size of the fire scale.")][SerializeField][Range(10.0f, 360.0f)] private float _equalHeatEndPoint = 210.0f;
+    [Tooltip("The number of equidistant fire rotation points.")][SerializeField][Range(0, 100)] private int _equalHeatPoints = 3;
+    [Tooltip("The size of the fire scale.")][SerializeField][Range(20f, 360f)] private float _equalHeatEndPoint = 210.0f;
     [Space]
-    [Tooltip("The equidistant number of ice rotation points.")][SerializeField][Range(0, 50)] private int _equalCoolPoints = 7;
-    [Tooltip("The size of the ice scale.")][SerializeField][Range(10.0f, 360.0f)] private float _equalCoolEndPoint = 210.0f;
+    [Tooltip("The number of equidistant ice rotation points.")][SerializeField][Range(0, 100)] private int _equalCoolPoints = 7;
+    [Tooltip("The size of the ice scale.")][SerializeField][Range(20f, 360f)] private float _equalCoolEndPoint = 210.0f;
     [Space]
+    [Tooltip("The set number of rotation points to go through by fire.")][Range(0, 100)] public int FireCalls = 1;
+    [Tooltip("The set number of rotation points to go through by ice.")][Range(0, 100)] public int IceCalls = 1;
+    [Tooltip("The remaining number of rotation points to go through by fire.")][SerializeField][Range(0, 100)] private int _remainingFireCalls;
+    [Tooltip("The remaining number of rotation points to go through by ice.")][SerializeField][Range(0, 100)] private int _remainingIceCalls;
+    [Space]
+
+    [Header("<size=14>Test-Only Rotation Parameters</size>")]
     [Tooltip("The delay at which auto-cooling begins.")][SerializeField][Range(0.0f, 100.0f)] private float _autoCoolDelay = 2.0f;
     [Tooltip("Whether auto-cooling is active.")] public bool AutoCoolOn = false;
     [Tooltip("Whether auto-cooling is triggered.")] public bool AutoCoolTriggerOn = false;
     [Tooltip("Whether instant movement is on.")] public bool InstantRotation = false;
     [Tooltip("Whether the rotation points adapat at run-time (currently heat-only).")] public bool RunTimeReposition = false;
     [Tooltip("Makes the ice hits the same as fire hits.")] public bool HeatOnlyScale = false;
-    [Tooltip("The number of fire hits.")][Range(0, 50)] public int FireCalls = 1;
-    [Tooltip("The number of ice hits.")][Range(0, 50)] public int IceCalls = 1;
 
     [Header("<size=14>Test-Only Location Parameters </size>")]
     [Space]
@@ -94,6 +113,11 @@ public class GaugeIndicator : MonoBehaviour
         // Sets Equal Points to rotate to.
         SetEqualHeatPoints();
         SetEqualCoolPoints();
+
+        for (int i = 0; i < _destinations.Length; i++)
+        {
+            _destinations[i] = new Destination(_destinations[i].name, _destinations[i].maxPosition, _destinations[i].minPosition);
+        }
 
         // Local Start Co-ordinates override.
         if (_setStartPosition)
@@ -125,7 +149,7 @@ public class GaugeIndicator : MonoBehaviour
         _nextRotationPoint = _heatRotationPoints[_heatIndex];
         _prevRotationPoint = !HeatOnlyScale ? _firstCoolPoint : _firstHeatPoint;
 
-        // Rotations CHECK THIS
+        // Rotations
         _defaultRotation = transform.rotation;
         _finalRotation = _defaultRotation * Quaternion.Euler(_rotationAxis * _finalHeatPoint);
         _descendRotation = _defaultRotation * Quaternion.Euler(_rotationAxis * _firstCoolPoint);
@@ -260,9 +284,9 @@ public class GaugeIndicator : MonoBehaviour
 
                 // Repeated Increment calls.
 
-                if (_fireCalls > 0)
+                if (_remainingFireCalls > 0)
                 {
-                    _fireCalls--;
+                    _remainingFireCalls--;
                     MoveToNextPoint = true;
                 }
                 else
@@ -360,9 +384,9 @@ public class GaugeIndicator : MonoBehaviour
 
             if (HeatOnlyScale)
             {
-                if (_fireCalls > 0)
+                if (_remainingFireCalls > 0)
                 {
-                    _fireCalls--;
+                    _remainingFireCalls--;
                     MoveToPrevPoint = true;
                 }
                 else
@@ -373,9 +397,9 @@ public class GaugeIndicator : MonoBehaviour
             else
             {
 
-                if (_iceCalls > 0)
+                if (_remainingIceCalls > 0)
                 {
-                    _iceCalls--;
+                    _remainingIceCalls--;
                     MoveToPrevPoint = true;
                 }
                 else
@@ -397,28 +421,14 @@ public class GaugeIndicator : MonoBehaviour
 
     public void SetFireCalls()
     {
-        const float off = 19.9f;
-        if (_maxDegrees != off)
-        {
-            _fireCalls = (_firePercentage * FireCalls) - 1;
-        }
-        else
-        {
-            _fireCalls = FireCalls - 1;
-        }
+        FireCalls = _customScale ? FireCalls: _firePercentage;
+        _remainingFireCalls = FireCalls - 1;
     }
 
     public void SetIceCalls()
     {
-        const float off = 19.9f;
-        if (_maxDegrees != off)
-        {
-            _iceCalls = (_icePercentage * IceCalls) - 1;
-        }
-        else
-        {
-            _iceCalls = IceCalls - 1;
-        }
+        IceCalls = _customScale ? IceCalls : _icePercentage;
+        _remainingIceCalls = IceCalls - 1;
     }
 
     private int GetInitialIndex()
@@ -703,8 +713,6 @@ public class GaugeIndicator : MonoBehaviour
 
     private void CheckForDestination()
     {
-        const float origin = 0.0f;
-
         foreach (Destination destination in _destinations)
         {
             if (_rotationIncrement >= destination.minPosition && _rotationIncrement <= destination.maxPosition)
@@ -717,12 +725,11 @@ public class GaugeIndicator : MonoBehaviour
 
     private void SetEqualHeatPoints()
     {
-        const float off = 19.9f;
         const int oneHundredPercent = 100, oneStartPoint = 1, nothing = 0;
 
         // When the end points are equal and by percent.
 
-        if (_maxDegrees != off)
+        if (!_customScale)
         {
             _equalHeatPoints = oneHundredPercent;
             _equalHeatEndPoint = _maxDegrees;
@@ -744,12 +751,11 @@ public class GaugeIndicator : MonoBehaviour
 
     private void SetEqualCoolPoints()
     {
-        const float off = 19.9f;
         const int oneHundredPercent = 100, oneStartPoint = 1, nothing = 0;
 
         // When the end points are equal and by percent.
 
-        if (_maxDegrees != off)
+        if (!_customScale)
         {
             _equalCoolPoints = oneHundredPercent;
             _equalCoolEndPoint = _maxDegrees;
@@ -772,8 +778,8 @@ public class GaugeIndicator : MonoBehaviour
     private void SetDisabled()
     {
         // Sets fire and ice calls to 0 to halt recursion, then sets to original number after a delay.
-        _fireCalls = 0;
-        _iceCalls = 0;
+        _remainingFireCalls = 0;
+        _remainingIceCalls = 0;
         Invoke("SetFireCalls", _smallDelay);
         Invoke("SetIceCalls", _smallDelay);
 
